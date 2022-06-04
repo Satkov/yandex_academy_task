@@ -1,3 +1,5 @@
+import math
+
 from rest_framework import serializers
 
 from .models import Product
@@ -8,7 +10,7 @@ class ChildrenSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Product
-        fields = ('name', 'id', 'price', 'date', 'type', 'parent_id')
+        fields = ('name', 'id', 'parent_id', 'date', 'price', 'type')
 
     def get_parent_id(self, obj):
         parent = obj.parents
@@ -18,12 +20,22 @@ class ChildrenSerializer(serializers.ModelSerializer):
 
 
 class ProductSerializer(serializers.ModelSerializer):
+    price = serializers.SerializerMethodField()
     parent_id = serializers.SerializerMethodField()
     children = serializers.SerializerMethodField()
 
     class Meta:
         model = Product
-        fields = ('id', 'name', 'date', 'type', 'parent_id', 'price', 'children')
+        fields = ('id', 'name', 'type', 'parent_id', 'date', 'price', 'children')
+
+    def get_price(self, obj):
+        if obj.type == 'OFFER':
+            return obj.price
+        children = obj.children.all()
+        price = 0
+        for child in children:
+            price += child.price
+        return math.floor(price/len(children))
 
     def get_parent_id(self, obj):
         parent = obj.parents
