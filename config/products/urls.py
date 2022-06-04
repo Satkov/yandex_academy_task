@@ -9,5 +9,6 @@ router.register(r'boards', ProductViewSet)
 
 
 urlpatterns = format_suffix_patterns([
-    path('nodes/<uuid:pk>/', ProductViewSet.as_view({'get': 'retrieve'}), name='product-retrieve')
+    path('nodes/<uuid:pk>/', ProductViewSet.as_view({'get': 'retrieve'}), name='product-retrieve'),
+    path('imports/', ProductViewSet.as_view({'post': 'create'}), name='product-create'),
 ])
