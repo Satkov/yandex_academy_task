@@ -1,3 +1,6 @@
+import json
+import uuid
+
 from rest_framework import mixins, status
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
@@ -13,7 +16,8 @@ class ProductViewSet(mixins.RetrieveModelMixin,
     queryset = Product.objects.all()
 
     def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
+        data = request.data['items']
+        serializer = self.get_serializer(data=data, many=True)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)

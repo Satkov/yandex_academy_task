@@ -11,7 +11,7 @@ class Product(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField('Название категории/товара', max_length=100, null=False)
     date = models.DateTimeField(auto_now=True)
-    parents = models.ForeignKey('self', null=True, blank=True, related_name='children', on_delete=models.CASCADE)
+    parentId = models.ForeignKey('self', null=True, blank=True, related_name='children', on_delete=models.CASCADE)
     type = models.CharField('Тип', max_length=10, choices=TYPE_CHOICES, null=False)
     price = models.BigIntegerField(null=True, blank=True)
 

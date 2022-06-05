@@ -1,4 +1,5 @@
 import math
+import uuid
 
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
@@ -8,11 +9,11 @@ from .utils import get_request, is_valid_uuid4
 
 
 class ChildrenSerializer(serializers.ModelSerializer):
-    parent_id = serializers.SerializerMethodField()
+    parentId = serializers.SerializerMethodField()
 
     class Meta:
         model = Product
-        fields = ('name', 'id', 'parent_id', 'date', 'price', 'type')
+        fields = ('name', 'id', 'parentId', 'date', 'price', 'type')
 
     def get_parent_id(self, obj):
         return obj.parents.id
@@ -20,91 +21,53 @@ class ChildrenSerializer(serializers.ModelSerializer):
 
 class ProductSerializer(serializers.ModelSerializer):
     id = serializers.UUIDField()
-    parent_id = serializers.UUIDField(write_only=True, required=False)
-    parent_id = serializers.SerializerMethodField(read_only=True)
-    price = serializers.SerializerMethodField(read_only=True)
-    children = serializers.SerializerMethodField()
+    parentId = serializers.SlugRelatedField(
+        slug_field='id',
+        queryset=Product.objects.all(),
+        required=False
+    )
 
     class Meta:
         model = Product
-        fields = ('id', 'name', 'type', 'parent_id', 'date', 'price', 'children')
+        fields = ('id', 'name', 'type', 'parentId', 'date', 'price')
 
     def validate(self, data):
         print(data)
-        request_data = get_request(self.context).data
-
-        # Проверка на наличие поля 'id' в request
-        if 'id' not in request_data:
+        if not data.get('type') == 'OFFER' and data.get('price') != 0:
             raise serializers.ValidationError({
-                'errors': 'id is required'
+                'errors': "Category can't have a price"
             })
 
-        # Проверка уникальности id
-        if Product.objects.filter(id=request_data.get('id')).exists():
-            raise serializers.ValidationError({
-                'errors': 'Product with such id is already exists'
-            })
-
-        data['id'] = request_data.get('id')
-
-        if 'parent_id' in request_data:
-            parent_id = request_data.get('parent_id')
-
-            # Проверка наличия объекта Product с предоставленным id в БД
-            if not Product.objects.filter(id=parent_id).exists():
+        if 'parentId' in data:
+            parent = get_object_or_404(Product, id=data.get('parentId').id)
+            if parent.type != 'CATEGORY':
                 raise serializers.ValidationError({
-                    'errors': "Product with such parent_id doesn't exists"
+                    'errors': "OFFER can't be a parent"
                 })
-            data['parent_id'] = parent_id
-
-        if 'price' in request_data:
-            price = request_data.get('price')
-            # Проверка типа поля id
-            try:
-                int(price)
-            except ValueError:
-                raise serializers.ValidationError({
-                    'errors': "Price must be int"
-                })
-            data['price'] = price
 
         return data
 
     def create(self, validated_data):
-        product = Product.objects.create(
-            id=validated_data.get('id'),
-            name=validated_data.get('name'),
-            type=validated_data.get('type'),
-        )
-        if 'price' in validated_data:
-            product.price = validated_data.get('price')
+        print(validated_data)
+        if not Product.objects.filter(id=validated_data.get('id')).exists():
+            product = Product.objects.create(
+                id=validated_data.get('id'),
+                name=validated_data.get('name'),
+                type=validated_data.get('type'),
+            )
+            if 'price' in validated_data:
+                product.price = validated_data.get('price')
 
-        if 'parent_id' in validated_data:
-            parent = get_object_or_404(Product, id=validated_data.get('parent_id'))
-            product.parents = parent
-        product.save()
-        return product
+            if 'parentId' in validated_data:
+                product.parentId = validated_data.get('parentId')
+            product.save()
+            return product
 
-    def get_price(self, obj):
-        if obj.type == 'OFFER':
-            return obj.price
+        else:
+            product = get_object_or_404(Product, id=validated_data.get('id'))
+            return self.update(product, validated_data)
 
-        children = obj.children.all()
-        if not children:
-            return 0
+    def update(self, instance, validated_data):
+        super().update(instance, validated_data)
+        return instance
 
-        price = 0
-        for child in children:
-            price += child.price
-        return math.floor(price / len(children))
-
-    def get_parent_id(self, obj):
-        parent = obj.parents
-        if parent:
-            return obj.parents.id
-        return parent
-
-    def get_children(self, obj):
-        childrens = obj.children.all()
-        serializer = ChildrenSerializer(childrens, many=True)
-        return serializer.data
