@@ -1,11 +1,9 @@
 import math
-import uuid
 
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 
 from .models import Product
-from .utils import get_request, is_valid_uuid4
 
 
 class ChildrenSerializer(serializers.ModelSerializer):
@@ -15,11 +13,11 @@ class ChildrenSerializer(serializers.ModelSerializer):
         model = Product
         fields = ('name', 'id', 'parentId', 'date', 'price', 'type')
 
-    def get_parent_id(self, obj):
-        return obj.parents.id
+    def get_parentId(self, obj):
+        return obj.parentId.id
 
 
-class ProductSerializer(serializers.ModelSerializer):
+class ProductCreateUpdateDeleteSerializer(serializers.ModelSerializer):
     id = serializers.UUIDField()
     parentId = serializers.SlugRelatedField(
         slug_field='id',
@@ -48,7 +46,6 @@ class ProductSerializer(serializers.ModelSerializer):
         return data
 
     def create(self, validated_data):
-        print(validated_data)
         if not Product.objects.filter(id=validated_data.get('id')).exists():
             product = Product.objects.create(
                 id=validated_data.get('id'),
@@ -71,3 +68,27 @@ class ProductSerializer(serializers.ModelSerializer):
         super().update(instance, validated_data)
         return instance
 
+
+class ProductRetrieveSerializer(serializers.ModelSerializer):
+    price = serializers.SerializerMethodField(read_only=True)
+    children = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = Product
+        fields = ('name', 'id', 'parentId', 'date', 'price', 'type', 'children')
+
+    def get_children(self, obj):
+        children = obj.children.all()
+        serializer = ChildrenSerializer(children, many=True)
+        return serializer.data
+
+    def get_price(self, obj):
+        if obj.type == 'OFFER':
+            return obj.price
+
+        children = obj.children.all()
+        price = 0
+        for child in children:
+            if child.price:
+                price += child.price
+        return math.floor(price / len(children))
