@@ -1,12 +1,13 @@
+from django.shortcuts import get_object_or_404
 from rest_framework import mixins, status
+from rest_framework.decorators import action
 from rest_framework.permissions import SAFE_METHODS
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 from .serializers import (ProductCreateUpdateDeleteSerializer,
-                          ProductRetrieveSerializer,
-                          ProductHistorySerializer)
+                          ProductRetrieveSerializer, ProductHistorySerializer)
 from .models import Product
-from .utils import SplitCategoryFromOffers
+from .utils import SplitCategoriesFromOffers
 
 
 class ProductViewSet(mixins.RetrieveModelMixin,
@@ -21,7 +22,12 @@ class ProductViewSet(mixins.RetrieveModelMixin,
         return ProductCreateUpdateDeleteSerializer
 
     def create(self, request, *args, **kwargs):
-        CATEGORIES, OFFERS = SplitCategoryFromOffers(request.data['items'])
+        """
+        Категории и товары создаются отедльно,
+        чтобы категории можно было использовать в качестве
+        родителя для товаров из того же запроса
+        """
+        CATEGORIES, OFFERS = SplitCategoriesFromOffers(request.data['items'])
         if CATEGORIES:
             serializer = self.get_serializer(data=CATEGORIES, many=True)
             serializer.is_valid(raise_exception=True)
@@ -33,8 +39,28 @@ class ProductViewSet(mixins.RetrieveModelMixin,
             self.perform_create(serializer)
         return Response(status=status.HTTP_200_OK)
 
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_200_OK)
 
-class ProductHistoryViewSet(mixins.RetrieveModelMixin,
-                            GenericViewSet):
-    queryset = Product.objects.all()
-    serializer_class = ProductHistorySerializer
+    @action(detail=True, methods=['GET'], url_path='statistic')
+    def statistic(self, request, pk=None):
+        start, end = request.GET.get('dateStart'), request.GET.get('dateEnd')
+        product = get_object_or_404(Product, id=pk)
+        history = []
+        for record in product.history.all():
+            data = {
+                'id': record.id,
+                'name': record.name,
+                'date': record.date,
+                'type': record.type,
+                'price': record.price,
+                'parentId': record.parentId_id,
+            }
+            history.append(data)
+        serializer = ProductHistorySerializer(data=history,
+                                              many=True)
+        serializer.is_valid(raise_exception=True)
+        data = {'items': serializer.data}
+        return Response(data, status=status.HTTP_200_OK)

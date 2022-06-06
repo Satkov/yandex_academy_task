@@ -92,22 +92,20 @@ class ProductRetrieveSerializer(serializers.ModelSerializer):
             else:
                 counter += 1
                 price += child.price
+
+        if counter == 0:
+            return 0
+
         return math.floor(price / counter)
 
     def get_date(self, obj):
         return obj.date.strftime('%Y-%m-%dT%H:%M:%SZ')
 
 
-class HistoricalRecordField(serializers.ListField):
-    child = serializers.DictField()
-
-    def to_representation(self, data):
-        return super().to_representation(data.values())
-
-
-class ProductHistorySerializer(serializers.ModelSerializer):
-    items = HistoricalRecordField(read_only=True)
-
-    class Meta:
-        model = Product
-        fields = ('items',)
+class ProductHistorySerializer(serializers.Serializer):
+    id = serializers.UUIDField()
+    name = serializers.CharField()
+    date = serializers.DateTimeField()
+    parentId = serializers.UUIDField(required=False, allow_null=True)
+    price = serializers.IntegerField(required=False, allow_null=True)
+    type = serializers.CharField()
