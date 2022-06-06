@@ -2,8 +2,11 @@ from rest_framework import mixins, status
 from rest_framework.permissions import SAFE_METHODS
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
-from .serializers import ProductCreateUpdateDeleteSerializer, ProductRetrieveSerializer
+from .serializers import (ProductCreateUpdateDeleteSerializer,
+                          ProductRetrieveSerializer,
+                          ProductHistorySerializer)
 from .models import Product
+from .utils import SplitCategoryFromOffers
 
 
 class ProductViewSet(mixins.RetrieveModelMixin,
@@ -18,8 +21,20 @@ class ProductViewSet(mixins.RetrieveModelMixin,
         return ProductCreateUpdateDeleteSerializer
 
     def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data['items'], many=True)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
-        return Response(status=status.HTTP_200_OK, headers=headers)
+        CATEGORIES, OFFERS = SplitCategoryFromOffers(request.data['items'])
+        if CATEGORIES:
+            serializer = self.get_serializer(data=CATEGORIES, many=True)
+            serializer.is_valid(raise_exception=True)
+            self.perform_create(serializer)
+
+        if OFFERS:
+            serializer = self.get_serializer(data=OFFERS, many=True)
+            serializer.is_valid(raise_exception=True)
+            self.perform_create(serializer)
+        return Response(status=status.HTTP_200_OK)
+
+
+class ProductHistoryViewSet(mixins.RetrieveModelMixin,
+                            GenericViewSet):
+    queryset = Product.objects.all()
+    serializer_class = ProductHistorySerializer

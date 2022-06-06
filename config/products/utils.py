@@ -26,3 +26,15 @@ def is_valid_uuid4(uuid_to_test):
     except TypeError:
         return False
     return str(uuid_obj) == uuid_to_test
+
+
+def SplitCategoryFromOffers(request_data):
+    CATEGORIES = []
+    OFFERS = []
+    for obj_data in request_data:
+        if obj_data.get('type') == 'CATEGORY':
+            CATEGORIES.append(obj_data)
+        else:
+            OFFERS.append(obj_data)
+
+    return CATEGORIES, OFFERS

@@ -1,6 +1,8 @@
 import uuid
+from datetime import datetime
 
 from django.db import models
+from simple_history.models import HistoricalRecords
 
 
 class Product(models.Model):
@@ -14,6 +16,7 @@ class Product(models.Model):
     parentId = models.ForeignKey('self', null=True, blank=True, related_name='children', on_delete=models.CASCADE)
     type = models.CharField('Тип', max_length=10, choices=TYPE_CHOICES, null=False)
     price = models.BigIntegerField(null=True, blank=True)
+    history = HistoricalRecords()
 
     class Meta:
         indexes = [models.Index(fields=['id'], name='product_id_idx')]

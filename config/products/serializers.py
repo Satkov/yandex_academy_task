@@ -1,4 +1,5 @@
 import math
+from queue import Queue
 
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
@@ -6,37 +7,26 @@ from rest_framework import serializers
 from .models import Product
 
 
-class ChildrenSerializer(serializers.ModelSerializer):
-    parentId = serializers.SerializerMethodField()
-
-    class Meta:
-        model = Product
-        fields = ('name', 'id', 'parentId', 'date', 'price', 'type')
-
-    def get_parentId(self, obj):
-        return obj.parentId.id
-
-
 class ProductCreateUpdateDeleteSerializer(serializers.ModelSerializer):
     id = serializers.UUIDField()
     parentId = serializers.SlugRelatedField(
         slug_field='id',
         queryset=Product.objects.all(),
-        required=False
+        required=False,
+        allow_null=True,
     )
 
     class Meta:
         model = Product
-        fields = ('id', 'name', 'type', 'parentId', 'date', 'price')
+        fields = ('id', 'name', 'type', 'parentId', 'price')
 
     def validate(self, data):
-        print(data)
-        if not data.get('type') == 'OFFER' and data.get('price') != 0:
+        if not data.get('type') == 'OFFER' and 'price' in data:
             raise serializers.ValidationError({
                 'errors': "Category can't have a price"
             })
 
-        if 'parentId' in data:
+        if 'parentId' in data and data.get('parentId'):
             parent = get_object_or_404(Product, id=data.get('parentId').id)
             if parent.type != 'CATEGORY':
                 raise serializers.ValidationError({
@@ -50,19 +40,18 @@ class ProductCreateUpdateDeleteSerializer(serializers.ModelSerializer):
             product = Product.objects.create(
                 id=validated_data.get('id'),
                 name=validated_data.get('name'),
-                type=validated_data.get('type'),
+                type=validated_data.get('type')
             )
             if 'price' in validated_data:
                 product.price = validated_data.get('price')
 
-            if 'parentId' in validated_data:
+            if 'parentId' in validated_data and validated_data.get('parentId'):
                 product.parentId = validated_data.get('parentId')
             product.save()
             return product
 
-        else:
-            product = get_object_or_404(Product, id=validated_data.get('id'))
-            return self.update(product, validated_data)
+        product = get_object_or_404(Product, id=validated_data.get('id'))
+        return self.update(product, validated_data)
 
     def update(self, instance, validated_data):
         super().update(instance, validated_data)
@@ -72,6 +61,7 @@ class ProductCreateUpdateDeleteSerializer(serializers.ModelSerializer):
 class ProductRetrieveSerializer(serializers.ModelSerializer):
     price = serializers.SerializerMethodField(read_only=True)
     children = serializers.SerializerMethodField(read_only=True)
+    date = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Product
@@ -79,16 +69,45 @@ class ProductRetrieveSerializer(serializers.ModelSerializer):
 
     def get_children(self, obj):
         children = obj.children.all()
-        serializer = ChildrenSerializer(children, many=True)
+        if not children:
+            return None
+        serializer = ProductRetrieveSerializer(children, many=True)
         return serializer.data
 
     def get_price(self, obj):
         if obj.type == 'OFFER':
             return obj.price
 
-        children = obj.children.all()
+        q = Queue()
+        for child in obj.children.all():
+            q.put(child)
+
         price = 0
-        for child in children:
-            if child.price:
+        counter = 0
+        while not q.empty():
+            child = q.get()
+            if child.type == 'CATEGORY':
+                for c in child.children.all():
+                    q.put(c)
+            else:
+                counter += 1
                 price += child.price
-        return math.floor(price / len(children))
+        return math.floor(price / counter)
+
+    def get_date(self, obj):
+        return obj.date.strftime('%Y-%m-%dT%H:%M:%SZ')
+
+
+class HistoricalRecordField(serializers.ListField):
+    child = serializers.DictField()
+
+    def to_representation(self, data):
+        return super().to_representation(data.values())
+
+
+class ProductHistorySerializer(serializers.ModelSerializer):
+    items = HistoricalRecordField(read_only=True)
+
+    class Meta:
+        model = Product
+        fields = ('items',)
