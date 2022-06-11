@@ -40,7 +40,7 @@ class ProductCreateUpdateDeleteSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         if not Product.objects.filter(id=validated_data.get('id')).exists():
-            product = Product(
+            product = Product.objects.create(
                 id=validated_data.get('id'),
                 name=validated_data.get('name'),
                 type=validated_data.get('type'),
@@ -52,8 +52,8 @@ class ProductCreateUpdateDeleteSerializer(serializers.ModelSerializer):
             if validated_data.get('parentId'):
                 ChangeParentDate(validated_data['parentId'], validated_data.get('date'))
 
-            product.save()
             return product
+
         product = get_object_or_404(Product, id=validated_data.get('id'))
         return self.update(product, validated_data)
 
