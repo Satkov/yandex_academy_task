@@ -44,14 +44,14 @@ class ProductCreateUpdateDeleteSerializer(serializers.ModelSerializer):
                 id=validated_data.get('id'),
                 name=validated_data.get('name'),
                 type=validated_data.get('type'),
-                date=validated_data.get('date')
+                date=validated_data.get('date'),
+                parentId=validated_data.get('parentId'),
+                price=validated_data.get('price')
             )
-            if validated_data.get('price'):
-                product.price = validated_data.get('price')
 
             if validated_data.get('parentId'):
-                product.parentId = validated_data.get('parentId')
                 ChangeParentDate(validated_data['parentId'], validated_data.get('date'))
+
             product.save()
             return product
         product = get_object_or_404(Product, id=validated_data.get('id'))
