@@ -23,14 +23,16 @@ class ProductCreateUpdateDeleteSerializer(serializers.ModelSerializer):
     def validate(self, data):
         if not data.get('type') == 'OFFER' and 'price' in data:
             raise serializers.ValidationError({
-                'errors': "Category can't have a price"
+                'code': 400,
+                'message': "Category can't have a price"
             })
 
         if 'parentId' in data and data.get('parentId'):
             parent = get_object_or_404(Product, id=data.get('parentId').id)
             if parent.type != 'CATEGORY':
                 raise serializers.ValidationError({
-                    'errors': "OFFER can't be a parent"
+                    'code': 400,
+                    'message': "OFFER can't be a parent"
                 })
 
         return data
@@ -114,13 +116,13 @@ class ProductRetrieveSerializer(serializers.ModelSerializer):
         return math.floor(price / counter)
 
     def get_date(self, obj):
-        return obj.date.strftime('%Y-%m-%dT%H:%M:%SZ')
+        return obj.date.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3] + 'Z'
 
 
 class ProductHistorySerializer(serializers.Serializer):
     id = serializers.UUIDField()
     name = serializers.CharField()
-    date = serializers.DateTimeField(format='%Y-%m-%dT%H:%M:%SZ')
+    date = serializers.DateTimeField(format='%Y-%m-%dT%H:%M:%S.%fZ')
     parentId = serializers.UUIDField(required=False, allow_null=True)
     price = serializers.IntegerField(required=False, allow_null=True)
     type = serializers.CharField()

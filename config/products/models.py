@@ -1,7 +1,7 @@
 import uuid
 
 from django.db import models
-from django.db.models.signals import post_save, pre_delete
+from django.db.models.signals import pre_delete, pre_save
 from django.dispatch import receiver
 from django.shortcuts import get_object_or_404
 
@@ -39,21 +39,24 @@ class ProductHistory(models.Model):
     type = models.CharField('Тип', max_length=10, choices=TYPE_CHOICES, null=False)
     price = models.BigIntegerField(null=True, blank=True)
     date_updated = models.DateTimeField(auto_now_add=True)
+    price_changed = models.BooleanField(default=False)
 
     class Meta:
         indexes = [models.Index(fields=['product_id'], name='product_history_product_id_idx')]
         verbose_name = 'История изменений модели Product'
 
 
-@receiver(post_save, sender=Product)
-def post_save_product_receiver(sender, instance, created, *args, **kwargs):
-    obj = ProductHistory.objects.create(
+@receiver(pre_save, sender=Product)
+def pre_save_product_receiver(sender, instance, *args, **kwargs):
+    obj = ProductHistory(
         product_id=instance.id,
         name=instance.name,
         date=instance.date,
         type=instance.type,
         price=instance.price
     )
+    if get_object_or_404(Product, id=instance.id).price != instance.price:
+        obj.price_changed = True
     if instance.parentId:
         obj.parentId = instance.parentId
     obj.save()

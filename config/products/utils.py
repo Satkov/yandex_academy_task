@@ -28,21 +28,20 @@ def SplitCategoriesFromOffers(request_data):
     return CATEGORIES, OFFERS
 
 
-def ParseDateRangeFromRequest(request):
-    start, end = request.GET.get('dateStart'), request.GET.get('dateEnd')
-    if start is None:
-        return None, None
+def ParseDateFromRequest(request, field_name):
+    date = request.GET.get(field_name)
+    if date is None:
+        return None
 
     try:
-        start = datetime.strptime(start, "%Y-%m-%dT%H:%M:%S.%fZ")
-        end = datetime.strptime(end, "%Y-%m-%dT%H:%M:%S.%fZ")
+        date = datetime.strptime(date, "%Y-%m-%dT%H:%M:%S.%fZ")
     except ValueError:
         raise ValidationError({
             'code': 400,
-            'message': 'Wrong date format'
+            'message': f'Wrong date format: {date}'
         })
 
-    return start, end
+    return date
 
 
 def PutProductHistoryDataIntoDict(queryset):
@@ -52,9 +51,10 @@ def PutProductHistoryDataIntoDict(queryset):
             'id': obj.product_id,
             'name': obj.name,
             'date': obj.date,
-            'parentId': obj.parentId,
             'type': obj.type,
             'price': obj.price
         }
+        if obj.parentId:
+            obj_data['parentId'] = obj.parentId.id
         history.append(obj_data)
     return history
