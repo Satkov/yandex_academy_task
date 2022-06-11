@@ -14,7 +14,7 @@ class ProductCreateUpdateDeleteSerializer(serializers.ModelSerializer):
         slug_field='id',
         queryset=Product.objects.all(),
         required=False,
-        allow_null=True,
+        allow_null=True
     )
 
     class Meta:

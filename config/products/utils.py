@@ -1,20 +1,9 @@
 from datetime import datetime
 
+from django.http import Http404
 from rest_framework.exceptions import ValidationError
 
-
-
-def get_request_data(context):
-    """
-    Проверяет, есть ли контекст в request
-    """
-    try:
-        request = context.get('request_data')
-    except KeyError:
-        raise KeyError({
-            'error': 'request was not received'
-        })
-    return request
+from .models import ProductHistory
 
 
 def SplitCategoriesFromOffers(request_data):
@@ -66,3 +55,23 @@ def ChangeParentDate(parent, new_date):
         parent.date = new_date
         parent.save()
         parent = parent.parentId
+
+
+def GetProductHistoryDateRangeQueryset(pk, start, end):
+    if not ProductHistory.objects.filter(product_id=pk).exists():
+        raise Http404({
+            "code": 404,
+            "message": "Item not found"
+        })
+    if not start:
+        queryset = ProductHistory.objects.filter(product_id=pk)
+    else:
+        queryset = ProductHistory.objects.filter(product_id=pk,
+                                                 date_updated__range=[start, end])
+    if not queryset:
+        raise ValidationError({
+            "code": 400,
+            "message": "Validation Failed"
+        })
+
+    return queryset

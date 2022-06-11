@@ -8,7 +8,8 @@ from rest_framework.viewsets import GenericViewSet
 from .serializers import (ProductCreateUpdateDeleteSerializer,
                           ProductRetrieveSerializer, ProductHistorySerializer)
 from .models import Product, ProductHistory
-from .utils import SplitCategoriesFromOffers, ParseDateFromRequest, PutProductHistoryDataIntoDict
+from .utils import SplitCategoriesFromOffers, ParseDateFromRequest, PutProductHistoryDataIntoDict, \
+    GetProductHistoryDateRangeQueryset
 
 
 class ProductViewSet(mixins.RetrieveModelMixin,
@@ -49,12 +50,7 @@ class ProductViewSet(mixins.RetrieveModelMixin,
     def statistic(self, request, pk=None):
         start = ParseDateFromRequest(request, 'dateStart')
         end = ParseDateFromRequest(request, 'dateEnd')
-        if not start:
-            queryset = ProductHistory.objects.filter(product_id=pk)
-        else:
-            queryset = ProductHistory.objects.filter(product_id=pk,
-                                                     date_updated__range=[start, end])
-
+        queryset = GetProductHistoryDateRangeQueryset(pk, start, end)
         history = PutProductHistoryDataIntoDict(queryset)
         serializer = ProductHistorySerializer(data=history, many=True)
         serializer.is_valid(raise_exception=True)
