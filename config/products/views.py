@@ -5,11 +5,12 @@ from rest_framework.decorators import action
 from rest_framework.permissions import SAFE_METHODS
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
-from .serializers import (ProductCreateUpdateDeleteSerializer,
-                          ProductRetrieveSerializer, ProductHistorySerializer)
+
 from .models import Product, ProductHistory
-from .utils import SplitCategoriesFromOffers, ParseDateFromRequest, PutProductHistoryDataIntoDict, \
-    GetProductHistoryDateRangeQueryset
+from .serializers import (ProductCreateUpdateDeleteSerializer,
+                          ProductHistorySerializer, ProductRetrieveSerializer)
+from .utils import (GetProductHistoryDateRangeQueryset, ParseDateFromRequest,
+                    PutProductHistoryDataIntoDict, SplitCategoriesFromOffers)
 
 
 class ProductViewSet(mixins.RetrieveModelMixin,
