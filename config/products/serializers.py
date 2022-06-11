@@ -61,6 +61,7 @@ class ProductCreateUpdateDeleteSerializer(serializers.ModelSerializer):
         instance.name = validated_data.get('name')
         instance.type = validated_data.get('type')
         instance.date = validated_data.get('date')
+        instance.parentId = validated_data.get('parentId')
 
         if 'price' not in validated_data:
             if validated_data.get('type') == 'OFFER':
@@ -70,11 +71,9 @@ class ProductCreateUpdateDeleteSerializer(serializers.ModelSerializer):
         else:
             instance.price = validated_data.get('price')
 
-        if not validated_data.get('parentId'):
-            instance.parentId = None
-        else:
-            instance.parentId = validated_data.get('parentId')
+        if validated_data.get('parentId'):
             ChangeParentDate(validated_data['parentId'], validated_data.get('date'))
+
         instance.save()
         return instance
 
