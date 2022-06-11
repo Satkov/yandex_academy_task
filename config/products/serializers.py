@@ -100,7 +100,7 @@ class ProductRetrieveSerializer(serializers.ModelSerializer):
         :return: int
 
         Если тип объекта категория, -
-        считает сумму стуимости всех дочерних элементов.
+        считает сумму стоимости всех дочерних элементов.
         """
         if obj.type == 'OFFER':
             return obj.price

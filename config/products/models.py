@@ -6,16 +6,17 @@ from django.dispatch import receiver
 from django.shortcuts import get_object_or_404
 
 
+class TypeChoices(models.TextChoices):
+    OFFER = 'OFFER', 'Товар'
+    CATEGORY = 'CATEGORY', 'Категория'
+
+
 class Product(models.Model):
-    TYPE_CHOICES = [
-        ('OFFER', 'Товар'),
-        ('CATEGORY', 'Категория')
-    ]
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField('Название категории/товара', max_length=100, null=False)
     date = models.DateTimeField()
     parentId = models.ForeignKey('self', null=True, blank=True, related_name='children', on_delete=models.CASCADE)
-    type = models.CharField('Тип', max_length=10, choices=TYPE_CHOICES, null=False)
+    type = models.CharField('Тип', max_length=10, choices=TypeChoices.choices, null=False)
     price = models.BigIntegerField(null=True, blank=True)
 
     class Meta:
@@ -28,15 +29,11 @@ class Product(models.Model):
 
 
 class ProductHistory(models.Model):
-    TYPE_CHOICES = [
-        ('OFFER', 'Товар'),
-        ('CATEGORY', 'Категория')
-    ]
     product_id = models.UUIDField()
     name = models.CharField('Название категории/товара', max_length=100, null=False)
     date = models.DateTimeField()
     parentId = models.ForeignKey(Product, null=True, blank=True, on_delete=models.CASCADE)
-    type = models.CharField('Тип', max_length=10, choices=TYPE_CHOICES, null=False)
+    type = models.CharField('Тип', max_length=10, choices=TypeChoices.choices, null=False)
     price = models.BigIntegerField(null=True, blank=True)
     price_changed = models.BooleanField(default=False)
 
