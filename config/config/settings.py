@@ -20,7 +20,7 @@ INSTALLED_APPS = [
     'products',
     'rest_framework',
     'rest_framework.authtoken',
-
+    'simple_history',
 ]
 
 MIDDLEWARE = [
@@ -95,9 +95,11 @@ USE_I18N = True
 
 USE_L10N = True
 
-USE_TZ = True
+USE_TZ = False
 
 
 STATIC_URL = '/static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+APPEND_SLASH = False

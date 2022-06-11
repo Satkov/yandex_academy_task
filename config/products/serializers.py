@@ -5,6 +5,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 
 from .models import Product
+from .utils import ChangeParentDate
 
 
 class ProductCreateUpdateDeleteSerializer(serializers.ModelSerializer):
@@ -18,7 +19,7 @@ class ProductCreateUpdateDeleteSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Product
-        fields = ('id', 'name', 'type', 'parentId', 'price')
+        fields = ('id', 'name', 'date', 'type', 'parentId', 'price')
 
     def validate(self, data):
         if not data.get('type') == 'OFFER' and 'price' in data:
@@ -42,22 +43,24 @@ class ProductCreateUpdateDeleteSerializer(serializers.ModelSerializer):
             product = Product(
                 id=validated_data.get('id'),
                 name=validated_data.get('name'),
-                type=validated_data.get('type')
+                type=validated_data.get('type'),
+                date=validated_data.get('date')
             )
-            if 'price' in validated_data:
+            if validated_data.get('price'):
                 product.price = validated_data.get('price')
 
-            if 'parentId' in validated_data and validated_data.get('parentId'):
+            if validated_data.get('parentId'):
                 product.parentId = validated_data.get('parentId')
+                ChangeParentDate(validated_data['parentId'], validated_data.get('date'))
             product.save()
             return product
-
         product = get_object_or_404(Product, id=validated_data.get('id'))
         return self.update(product, validated_data)
 
     def update(self, instance, validated_data):
         instance.name = validated_data.get('name')
         instance.type = validated_data.get('type')
+        instance.date = validated_data.get('date')
 
         if 'price' not in validated_data:
             if validated_data.get('type') == 'OFFER':
@@ -67,10 +70,11 @@ class ProductCreateUpdateDeleteSerializer(serializers.ModelSerializer):
         else:
             instance.price = validated_data.get('price')
 
-        if 'parentId' not in validated_data:
+        if not validated_data.get('parentId'):
             instance.parentId = None
         else:
             instance.parentId = validated_data.get('parentId')
+            ChangeParentDate(validated_data['parentId'], validated_data.get('date'))
         instance.save()
         return instance
 

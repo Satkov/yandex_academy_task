@@ -28,7 +28,7 @@ class ProductViewSet(mixins.RetrieveModelMixin,
         чтобы категории можно было использовать в качестве
         родителя для товаров из того же запроса
         """
-        CATEGORIES, OFFERS = SplitCategoriesFromOffers(request.data['items'])
+        CATEGORIES, OFFERS = SplitCategoriesFromOffers(request.data)
         if CATEGORIES:
             serializer = self.get_serializer(data=CATEGORIES, many=True)
             serializer.is_valid(raise_exception=True)

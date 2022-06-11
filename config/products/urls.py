@@ -3,9 +3,6 @@ from rest_framework.urlpatterns import format_suffix_patterns
 
 from .views import ProductViewSet
 
-
-
-
 urlpatterns = format_suffix_patterns([
     path('sales', ProductViewSet.as_view({'get': 'sales'}), name='product-sales'),
     path('node/<uuid:pk>/statistic', ProductViewSet.as_view({'get': 'statistic'}), name='product-history'),

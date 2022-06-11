@@ -3,6 +3,7 @@ from datetime import datetime
 from rest_framework.exceptions import ValidationError
 
 
+
 def get_request_data(context):
     """
     Проверяет, есть ли контекст в request
@@ -19,12 +20,12 @@ def get_request_data(context):
 def SplitCategoriesFromOffers(request_data):
     CATEGORIES = []
     OFFERS = []
-    for obj_data in request_data:
+    for obj_data in request_data['items']:
+        obj_data['date'] = request_data.get('updateDate')
         if obj_data.get('type') == 'CATEGORY':
             CATEGORIES.append(obj_data)
         else:
             OFFERS.append(obj_data)
-
     return CATEGORIES, OFFERS
 
 
@@ -58,3 +59,10 @@ def PutProductHistoryDataIntoDict(queryset):
             obj_data['parentId'] = obj.parentId.id
         history.append(obj_data)
     return history
+
+
+def ChangeParentDate(parent, new_date):
+    while parent:
+        parent.date = new_date
+        parent.save()
+        parent = parent.parentId

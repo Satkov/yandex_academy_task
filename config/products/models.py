@@ -13,7 +13,7 @@ class Product(models.Model):
     ]
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField('Название категории/товара', max_length=100, null=False)
-    date = models.DateTimeField(auto_now=True)
+    date = models.DateTimeField()
     parentId = models.ForeignKey('self', null=True, blank=True, related_name='children', on_delete=models.CASCADE)
     type = models.CharField('Тип', max_length=10, choices=TYPE_CHOICES, null=False)
     price = models.BigIntegerField(null=True, blank=True)
@@ -34,7 +34,7 @@ class ProductHistory(models.Model):
     ]
     product_id = models.UUIDField()
     name = models.CharField('Название категории/товара', max_length=100, null=False)
-    date = models.DateTimeField(auto_now=True)
+    date = models.DateTimeField()
     parentId = models.ForeignKey(Product, null=True, blank=True, on_delete=models.CASCADE)
     type = models.CharField('Тип', max_length=10, choices=TYPE_CHOICES, null=False)
     price = models.BigIntegerField(null=True, blank=True)
@@ -48,18 +48,19 @@ class ProductHistory(models.Model):
 
 @receiver(pre_save, sender=Product)
 def pre_save_product_receiver(sender, instance, *args, **kwargs):
-    obj = ProductHistory(
-        product_id=instance.id,
-        name=instance.name,
-        date=instance.date,
-        type=instance.type,
-        price=instance.price
-    )
-    if get_object_or_404(Product, id=instance.id).price != instance.price:
-        obj.price_changed = True
-    if instance.parentId:
-        obj.parentId = instance.parentId
-    obj.save()
+    if instance.type == 'OFFER':
+        obj = ProductHistory(
+            product_id=instance.id,
+            name=instance.name,
+            date=instance.date,
+            type=instance.type,
+            price=instance.price
+        )
+        if Product.objects.filter(id=instance.id).exists():
+            obj.price_changed = get_object_or_404(Product, id=instance.id).price != instance.price
+        if instance.parentId:
+            obj.parentId = instance.parentId
+        obj.save()
 
 
 @receiver(pre_delete, sender=Product)
