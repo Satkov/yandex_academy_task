@@ -96,6 +96,13 @@ class ProductRetrieveSerializer(serializers.ModelSerializer):
         return serializer.data
 
     def get_price(self, obj):
+        """
+        :param obj: Product obj
+        :return: int
+
+        Если тип объекта категория, -
+        считает сумму стуимости всех дочерних элементов.
+        """
         if obj.type == 'OFFER':
             return obj.price
 

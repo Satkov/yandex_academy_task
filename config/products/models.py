@@ -54,7 +54,7 @@ def pre_save_product_receiver(sender, instance, *args, **kwargs):
         type=instance.type,
         price=instance.price
     )
-    if Product.objects.filter(id=instance.id).exists():
+    if Product.objects.filter(id=instance.id).exists() and obj.type == 'OFFER':
         obj.price_changed = get_object_or_404(Product, id=instance.id).price != instance.price
     if instance.parentId:
         obj.parentId = instance.parentId
