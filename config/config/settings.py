@@ -28,7 +28,6 @@ INSTALLED_APPS = [
     'products',
     'rest_framework',
     'rest_framework.authtoken',
-    'simple_history',
 ]
 
 MIDDLEWARE = [

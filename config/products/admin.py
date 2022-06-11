@@ -1,9 +1,8 @@
 from django.contrib import admin
-from simple_history.admin import SimpleHistoryAdmin
 from .models import Product, ProductHistory
 
 
-class ProductAdmin(SimpleHistoryAdmin):
+class ProductAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'date', 'type', 'price')
 
 
