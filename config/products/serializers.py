@@ -37,7 +37,7 @@ class ProductCreateUpdateDeleteSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         if not Product.objects.filter(id=validated_data.get('id')).exists():
-            product = Product.objects.create(
+            product = Product(
                 id=validated_data.get('id'),
                 name=validated_data.get('name'),
                 type=validated_data.get('type')
@@ -105,7 +105,7 @@ class ProductRetrieveSerializer(serializers.ModelSerializer):
 class ProductHistorySerializer(serializers.Serializer):
     id = serializers.UUIDField()
     name = serializers.CharField()
-    date = serializers.DateTimeField()
+    date = serializers.DateTimeField(format='%Y-%m-%dT%H:%M:%SZ')
     parentId = serializers.UUIDField(required=False, allow_null=True)
     price = serializers.IntegerField(required=False, allow_null=True)
     type = serializers.CharField()

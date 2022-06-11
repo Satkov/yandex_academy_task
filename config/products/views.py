@@ -1,4 +1,5 @@
-from django.shortcuts import get_object_or_404
+from datetime import datetime
+
 from rest_framework import mixins, status
 from rest_framework.decorators import action
 from rest_framework.permissions import SAFE_METHODS
@@ -6,8 +7,8 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 from .serializers import (ProductCreateUpdateDeleteSerializer,
                           ProductRetrieveSerializer, ProductHistorySerializer)
-from .models import Product
-from .utils import SplitCategoriesFromOffers
+from .models import Product, ProductHistory
+from .utils import SplitCategoriesFromOffers, ParseDateRangeFromRequest, PutProductHistoryDataIntoDict
 
 
 class ProductViewSet(mixins.RetrieveModelMixin,
@@ -46,21 +47,15 @@ class ProductViewSet(mixins.RetrieveModelMixin,
 
     @action(detail=True, methods=['GET'], url_path='statistic')
     def statistic(self, request, pk=None):
-        start, end = request.GET.get('dateStart'), request.GET.get('dateEnd')
-        product = get_object_or_404(Product, id=pk)
-        history = []
-        for record in product.history.all():
-            data = {
-                'id': record.id,
-                'name': record.name,
-                'date': record.date,
-                'type': record.type,
-                'price': record.price,
-                'parentId': record.parentId_id,
-            }
-            history.append(data)
-        serializer = ProductHistorySerializer(data=history,
-                                              many=True)
+        start, end = ParseDateRangeFromRequest(request)
+        if not start:
+            queryset = ProductHistory.objects.filter(product_id=pk)
+        else:
+            queryset = ProductHistory.objects.filter(product_id=pk,
+                                                     date_updated__range=[start, end])
+
+        history = PutProductHistoryDataIntoDict(queryset)
+        serializer = ProductHistorySerializer(data=history, many=True)
         serializer.is_valid(raise_exception=True)
         data = {'items': serializer.data}
         return Response(data, status=status.HTTP_200_OK)
