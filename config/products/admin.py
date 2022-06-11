@@ -8,7 +8,7 @@ class ProductAdmin(SimpleHistoryAdmin):
 
 
 class ProductHistoryAdmin(admin.ModelAdmin):
-    list_display = ('product_id', 'name', 'date', 'parentId', 'type', 'price', 'date_updated', 'price_changed')
+    list_display = ('product_id', 'name', 'date', 'parentId', 'type', 'price', 'price_changed')
 
 
 admin.site.register(Product, ProductAdmin)

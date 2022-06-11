@@ -61,7 +61,7 @@ class ProductViewSet(mixins.RetrieveModelMixin,
     def sales(self, request, pk=None):
         end = ParseDateFromRequest(request, 'date')
         start = end - timedelta(days=1)
-        queryset = ProductHistory.objects.filter(date_updated__range=[start, end],
+        queryset = ProductHistory.objects.filter(date__range=[start, end],
                                                  price_changed=True)
         history = PutProductHistoryDataIntoDict(queryset)
         serializer = ProductHistorySerializer(data=history, many=True)

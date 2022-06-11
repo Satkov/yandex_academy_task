@@ -67,7 +67,8 @@ def GetProductHistoryDateRangeQueryset(pk, start, end):
         queryset = ProductHistory.objects.filter(product_id=pk)
     else:
         queryset = ProductHistory.objects.filter(product_id=pk,
-                                                 date_updated__range=[start, end])
+                                                 date__range=[start, end])
+
     if not queryset:
         raise ValidationError({
             "code": 400,

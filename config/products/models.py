@@ -38,7 +38,6 @@ class ProductHistory(models.Model):
     parentId = models.ForeignKey(Product, null=True, blank=True, on_delete=models.CASCADE)
     type = models.CharField('Тип', max_length=10, choices=TYPE_CHOICES, null=False)
     price = models.BigIntegerField(null=True, blank=True)
-    date_updated = models.DateTimeField(auto_now_add=True)
     price_changed = models.BooleanField(default=False)
 
     class Meta:
@@ -48,19 +47,18 @@ class ProductHistory(models.Model):
 
 @receiver(pre_save, sender=Product)
 def pre_save_product_receiver(sender, instance, *args, **kwargs):
-    if instance.type == 'OFFER':
-        obj = ProductHistory(
-            product_id=instance.id,
-            name=instance.name,
-            date=instance.date,
-            type=instance.type,
-            price=instance.price
-        )
-        if Product.objects.filter(id=instance.id).exists():
-            obj.price_changed = get_object_or_404(Product, id=instance.id).price != instance.price
-        if instance.parentId:
-            obj.parentId = instance.parentId
-        obj.save()
+    obj = ProductHistory(
+        product_id=instance.id,
+        name=instance.name,
+        date=instance.date,
+        type=instance.type,
+        price=instance.price
+    )
+    if Product.objects.filter(id=instance.id).exists():
+        obj.price_changed = get_object_or_404(Product, id=instance.id).price != instance.price
+    if instance.parentId:
+        obj.parentId = instance.parentId
+    obj.save()
 
 
 @receiver(pre_delete, sender=Product)
