@@ -54,7 +54,22 @@ class ProductCreateUpdateDeleteSerializer(serializers.ModelSerializer):
         return self.update(product, validated_data)
 
     def update(self, instance, validated_data):
-        super().update(instance, validated_data)
+        instance.name = validated_data.get('name')
+        instance.type = validated_data.get('type')
+
+        if 'price' not in validated_data:
+            if validated_data.get('type') == 'OFFER':
+                instance.price = 0
+            else:
+                instance.price = None
+        else:
+            instance.price = validated_data.get('price')
+
+        if 'parentId' not in validated_data:
+            instance.parentId = None
+        else:
+            instance.parentId = validated_data.get('parentId')
+        instance.save()
         return instance
 
 

@@ -47,7 +47,6 @@ class ProductHistory(models.Model):
 
 @receiver(post_save, sender=Product)
 def post_save_product_receiver(sender, instance, created, *args, **kwargs):
-    print(instance.parentId)
     obj = ProductHistory.objects.create(
         product_id=instance.id,
         name=instance.name,
@@ -56,8 +55,8 @@ def post_save_product_receiver(sender, instance, created, *args, **kwargs):
         price=instance.price
     )
     if instance.parentId:
-        parent = get_object_or_404(Product, id=instance.parentId.id)
-        obj.parentId = parent
+        obj.parentId = instance.parentId
+    obj.save()
 
 
 @receiver(pre_delete, sender=Product)
