@@ -61,3 +61,6 @@ def pre_save_product_receiver(sender, instance, *args, **kwargs):
 @receiver(pre_delete, sender=Product)
 def pre_delete_product_receiver(sender, instance, *args, **kwargs):
     ProductHistory.objects.filter(product_id=instance.id).delete()
+
+    if instance.type == 'CATEGORY':
+        instance.children.all().delete()

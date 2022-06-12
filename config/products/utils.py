@@ -1,9 +1,10 @@
 from datetime import datetime
 
 from django.http import Http404
+from django.shortcuts import get_object_or_404
 from rest_framework.exceptions import ValidationError
 
-from .models import ProductHistory
+from .models import ProductHistory, Product
 
 
 def SplitCategoriesFromOffers(request_data):
@@ -22,14 +23,20 @@ def SplitCategoriesFromOffers(request_data):
     return CATEGORIES, OFFERS
 
 
-def ParseDateFromRequest(request, field_name):
+def ParseDateFromRequest(request, field_name, raise_exceptions=False):
     """
+    :param raise_exceptions: bool
     :param request: request obj
     :param field_name: str
     :return: Datetime
     """
     date = request.GET.get(field_name)
     if date is None:
+        if raise_exceptions:
+            raise ValidationError({
+                'code': 400,
+                'message': "Date was't given"
+            })
         return None
 
     try:
@@ -41,6 +48,30 @@ def ParseDateFromRequest(request, field_name):
         })
 
     return date
+
+
+def GetProductObjsByIdsFromProductHistory(queryset):
+    """
+    :param queryset: queryset(ProductHistory)
+    :return: List[dict{}]
+    """
+    d = {}
+    product_objs = []
+    for history_obj in queryset:
+        history_id = history_obj.product_id
+        if history_id not in d:
+            d[history_id] = True
+            product = get_object_or_404(Product, id=history_id)
+            data = {
+                'name': product.name,
+                'id': product.id,
+                'parentId': product.parentId,
+                'date': product.date,
+                'price': product.price,
+                'type': product.type,
+            }
+            product_objs.append(data)
+    return product_objs
 
 
 def PutProductHistoryDataIntoDict(queryset):

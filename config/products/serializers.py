@@ -46,12 +46,16 @@ class ProductCreateUpdateDeleteSerializer(serializers.ModelSerializer):
                 type=validated_data.get('type'),
                 date=validated_data.get('date'),
                 parentId=validated_data.get('parentId'),
-                price=validated_data.get('price')
             )
+            if validated_data.get('price') is None and validated_data.get('type') == 'OFFER':
+                product.price = 0
+            else:
+                product.price = validated_data.get('price')
 
             if validated_data.get('parentId'):
                 ChangeParentDate(validated_data['parentId'], validated_data.get('date'))
 
+            product.save()
             return product
 
         product = get_object_or_404(Product, id=validated_data.get('id'))
@@ -62,14 +66,10 @@ class ProductCreateUpdateDeleteSerializer(serializers.ModelSerializer):
         instance.type = validated_data.get('type')
         instance.date = validated_data.get('date')
         instance.parentId = validated_data.get('parentId')
+        instance.price = validated_data.get('price')
 
-        if 'price' not in validated_data:
-            if validated_data.get('type') == 'OFFER':
-                instance.price = 0
-            else:
-                instance.price = None
-        else:
-            instance.price = validated_data.get('price')
+        if validated_data.get('price') is None and validated_data.get('type') == 'OFFER':
+            instance.price = 0
 
         if validated_data.get('parentId'):
             ChangeParentDate(validated_data['parentId'], validated_data.get('date'))
@@ -129,11 +129,9 @@ class ProductRetrieveSerializer(serializers.ModelSerializer):
         return obj.date.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3] + 'Z'
 
 
-class ProductHistorySerializer(serializers.Serializer):
-    # Поправить вывод времени!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    id = serializers.UUIDField()
-    name = serializers.CharField()
+class SalesProductSerializer(serializers.ModelSerializer):
     date = serializers.DateTimeField(format='%Y-%m-%dT%H:%M:%S.%fZ')
-    parentId = serializers.UUIDField(required=False, allow_null=True)
-    price = serializers.IntegerField(required=False, allow_null=True)
-    type = serializers.CharField()
+
+    class Meta:
+        model = Product
+        fields = ('name', 'id', 'parentId', 'date', 'price', 'type')

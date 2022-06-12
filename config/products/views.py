@@ -8,9 +8,10 @@ from rest_framework.viewsets import GenericViewSet
 
 from .models import Product, ProductHistory
 from .serializers import (ProductCreateUpdateDeleteSerializer,
-                          ProductHistorySerializer, ProductRetrieveSerializer)
+                          SalesProductSerializer, ProductRetrieveSerializer)
 from .utils import (GetProductHistoryDateRangeQueryset, ParseDateFromRequest,
-                    PutProductHistoryDataIntoDict, SplitCategoriesFromOffers)
+                    PutProductHistoryDataIntoDict, SplitCategoriesFromOffers,
+                    GetProductObjsByIdsFromProductHistory)
 
 
 class ProductViewSet(mixins.RetrieveModelMixin,
@@ -53,19 +54,20 @@ class ProductViewSet(mixins.RetrieveModelMixin,
         end = ParseDateFromRequest(request, 'dateEnd')
         queryset = GetProductHistoryDateRangeQueryset(pk, start, end)
         history = PutProductHistoryDataIntoDict(queryset)
-        serializer = ProductHistorySerializer(data=history, many=True)
+        serializer = SalesProductSerializer(data=history, many=True)
         serializer.is_valid(raise_exception=True)
         data = {'items': serializer.data}
         return Response(data, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=['GET'], url_path='sales')
     def sales(self, request, pk=None):
-        end = ParseDateFromRequest(request, 'date')
+        end = ParseDateFromRequest(request, 'date', True)
         start = end - timedelta(days=1)
         queryset = ProductHistory.objects.filter(date__range=[start, end],
-                                                 price_changed=True)
-        history = PutProductHistoryDataIntoDict(queryset)
-        serializer = ProductHistorySerializer(data=history, many=True)
+                                                 price_changed=True,
+                                                 type='OFFER')
+        products = GetProductObjsByIdsFromProductHistory(queryset)
+        serializer = SalesProductSerializer(data=products, many=True)
         serializer.is_valid(raise_exception=True)
         data = {'items': serializer.data}
         return Response(data, status=status.HTTP_200_OK)
