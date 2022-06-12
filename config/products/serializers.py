@@ -130,6 +130,7 @@ class ProductRetrieveSerializer(serializers.ModelSerializer):
 
 
 class ProductHistorySerializer(serializers.Serializer):
+    # Поправить вывод времени!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     id = serializers.UUIDField()
     name = serializers.CharField()
     date = serializers.DateTimeField(format='%Y-%m-%dT%H:%M:%S.%fZ')
