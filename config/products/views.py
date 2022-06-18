@@ -35,12 +35,10 @@ class ProductViewSet(mixins.RetrieveModelMixin,
         if CATEGORIES:
             serializer = self.get_serializer(data=CATEGORIES, many=True)
             serializer.is_valid(raise_exception=True)
-            self.perform_create(serializer)
 
         if OFFERS:
             serializer = self.get_serializer(data=OFFERS, many=True)
             serializer.is_valid(raise_exception=True)
-            self.perform_create(serializer)
         return Response(status=status.HTTP_200_OK)
 
     def destroy(self, request, *args, **kwargs):
