@@ -40,7 +40,7 @@ class ProductCreateUpdateDeleteSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         if not Product.objects.filter(id=validated_data.get('id')).exists():
-            product = Product.objects.create(
+            product = Product(
                 id=validated_data.get('id'),
                 name=validated_data.get('name'),
                 type=validated_data.get('type'),
