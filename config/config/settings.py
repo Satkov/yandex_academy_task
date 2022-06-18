@@ -24,7 +24,7 @@ ALLOWED_HOSTS = [
     '[::1]',
     'testserver',
     '10.21.1.61',
-    'https://nick-2016.usr.yandex-academy.ru/',
+    'nick-2016.usr.yandex-academy.ru',
 ]
 
 
