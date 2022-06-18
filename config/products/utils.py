@@ -134,7 +134,7 @@ def GetProductHistoryDateRangeQueryset(pk, start, end):
     if not queryset:
         raise ValidationError({
             "code": 400,
-            "message": "Validation Failed"
+            "message": "No items in this date range"
         })
 
     return queryset
