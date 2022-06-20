@@ -4,7 +4,7 @@ from django.http import Http404
 from django.shortcuts import get_object_or_404
 from rest_framework.exceptions import ValidationError
 
-from .models import ProductHistory, Product
+from .models import Product, ProductHistory
 
 
 def SplitCategoriesFromOffers(request_data):
@@ -12,15 +12,15 @@ def SplitCategoriesFromOffers(request_data):
     :param request_data: List[dict{}]
     :return: List[dict{}], List[dict{}]
     """
-    CATEGORIES = []
-    OFFERS = []
+    Categories = []
+    Offers = []
     for obj_data in request_data['items']:
         obj_data['date'] = request_data.get('updateDate')
         if obj_data.get('type') == 'CATEGORY':
-            CATEGORIES.append(obj_data)
+            Categories.append(obj_data)
         else:
-            OFFERS.append(obj_data)
-    return CATEGORIES, OFFERS
+            Offers.append(obj_data)
+    return Categories, Offers
 
 
 def ParseDateFromRequest(request, field_name, raise_exceptions=False):

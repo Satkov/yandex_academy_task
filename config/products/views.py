@@ -8,10 +8,11 @@ from rest_framework.viewsets import GenericViewSet
 
 from .models import Product, ProductHistory
 from .serializers import (ProductCreateUpdateDeleteSerializer,
-                          SalesProductSerializer, ProductRetrieveSerializer)
-from .utils import (GetProductHistoryDateRangeQueryset, ParseDateFromRequest,
-                    PutProductHistoryDataIntoDict, SplitCategoriesFromOffers,
-                    GetProductObjsByIdsFromProductHistory)
+                          ProductRetrieveSerializer, SalesProductSerializer)
+from .utils import (GetProductHistoryDateRangeQueryset,
+                    GetProductObjsByIdsFromProductHistory,
+                    ParseDateFromRequest, PutProductHistoryDataIntoDict,
+                    SplitCategoriesFromOffers)
 
 
 class ProductViewSet(mixins.RetrieveModelMixin,

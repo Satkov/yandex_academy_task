@@ -2,8 +2,7 @@ import json
 from datetime import datetime
 from uuid import UUID
 
-from django.test import TestCase, Client
-
+from django.test import Client, TestCase
 from products.models import Product, ProductHistory
 
 
