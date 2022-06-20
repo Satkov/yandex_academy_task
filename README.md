@@ -1,7 +1,7 @@
-### Вступительное задание в Академию Яндекса
+# Вступительное задание в Академию Яндекса
 Проект развернут тут - `https://nick-2016.usr.yandex-academy.ru`
 Спецификация API описана в файле `openapi.yaml` в корневой папке проекта. (https://editor.swagger.io/)
-# Локальный запуск проекта через docker compose
+## Локальный запуск проекта через docker compose
 Создайте файл `.env` и заполните его в соответствии с перечисленными полями в файле `env_example.txt` в корневой папке проекта. 
 Из корневой папки выполните:
 ``` python
@@ -11,7 +11,7 @@ docker compose exec -it backend python manage.py migrate
 ```
 Проект будет запущен на `http://127.0.0.1/`
 
-# Локальный запуск на sqlite3
+## Локальный запуск на sqlite3
 В файле `/config/config/setting.py` замените переменную `DATABASES` на: 
 
 ```python
@@ -31,7 +31,7 @@ python manage.py runserver
 Проект будет запущен на `http://127.0.0.1:8000/`
 
 
-# Запуск тестов:
+### Запуск тестов:
 ```python
 # Запуск через docker compose
 docker compose exec -it backend python manage.py test
@@ -39,7 +39,7 @@ docker compose exec -it backend python manage.py test
 python manage.py test
 ```
 
-# Создание суперпользователя:
+### Создание суперпользователя:
 ```python
 # Запуск через docker compose
 docker compose exec -it backend python manage.py createsuperuser
@@ -48,7 +48,7 @@ python manage.py createsuperuser
 ```
 Админка доступна по адресу - `/admin`
 
-# Устройство и работа кода
+## Устройство и работа кода
 Сервис написан на базе Django Rest Framework.
 Здесь описаны моменты, которые могут показаться неочевидными.
 
