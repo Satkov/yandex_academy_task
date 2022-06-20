@@ -20,7 +20,10 @@ jobs:
         pip install -r requirements.txt
     - name: flake8 
       run:
-        python -m flake8
+        docker compose up
+        docker compose exec -it backend python manage.py makemigrations
+        docker compose exec -it backend python manage.py migrate
+        docker compose exec -it backend python manage.py test
 
 
   build_and_push_to_docker_hub:
@@ -43,31 +46,31 @@ jobs:
             push: true
             tags: gsatkov/yandex_academy_satkov:latest
 
-  deploy:
-    runs-on: ubuntu-latest
-    needs: build_and_push_to_docker_hub
-    steps:
-      - name: executing remote ssh commands to deploy
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.USER }}
-          key: ${{ secrets.SSH_KEY }}
-          stack_file_name: docker-compose.yaml
-          script: |
-            sudo docker pull gsatkov/yandex_academy_satkov:latest
-            sudo docker-compose stop
-            sudo docker-compose rm backend
-            touch .env
-            echo DB_ENGINE=${{ secrets.DB_ENGINE }} >> .env
-            echo DB_NAME=${{ secrets.DB_NAME }} >> .env
-            echo POSTGRES_USER=${{ secrets.POSTGRES_USER }} >> .env
-            echo POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} >> .env
-            echo DB_HOST=${{ secrets.DB_HOST }} >> .env
-            echo DB_PORT=${{ secrets.DB_PORT }} >> .env
-            echo SECRET_KEY=${{ secrets.SECRET_KEY }} >> .env
-            echo DEBUG=${{ secrets.DEBUG }} >> .env
-            sudo docker-compose up -d
+#  deploy:
+#    runs-on: ubuntu-latest
+#    needs: build_and_push_to_docker_hub
+#    steps:
+#      - name: executing remote ssh commands to deploy
+#        uses: appleboy/ssh-action@master
+#        with:
+#          host: ${{ secrets.HOST }}
+#          username: ${{ secrets.USER }}
+#          key: ${{ secrets.SSH_KEY }}
+#          stack_file_name: docker-compose.yaml
+#          script: |
+#            sudo docker pull gsatkov/yandex_academy_satkov:latest
+#            sudo docker-compose stop
+#            sudo docker-compose rm backend
+#            touch .env
+#            echo DB_ENGINE=${{ secrets.DB_ENGINE }} >> .env
+#            echo DB_NAME=${{ secrets.DB_NAME }} >> .env
+#            echo POSTGRES_USER=${{ secrets.POSTGRES_USER }} >> .env
+#            echo POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} >> .env
+#            echo DB_HOST=${{ secrets.DB_HOST }} >> .env
+#            echo DB_PORT=${{ secrets.DB_PORT }} >> .env
+#            echo SECRET_KEY=${{ secrets.SECRET_KEY }} >> .env
+#            echo DEBUG=${{ secrets.DEBUG }} >> .env
+#            sudo docker-compose up -d
 
   Send_message_to_Telegram:
     name: Telegram
