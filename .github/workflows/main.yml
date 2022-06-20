@@ -19,7 +19,7 @@ jobs:
         pip install flake8 flake8-broken-line flake8-return
         pip install -r requirements.txt
     - name: flake8 
-      run:
+      run: |
         docker compose up
         docker compose exec -it backend python manage.py makemigrations
         docker compose exec -it backend python manage.py migrate
