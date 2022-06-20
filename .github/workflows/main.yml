@@ -22,6 +22,7 @@ jobs:
       run:
         python -m flake8
     - name: unit-tests
+      run:
         python manage.py tests
 
   build_and_push_to_docker_hub:
