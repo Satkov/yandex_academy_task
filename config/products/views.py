@@ -60,8 +60,8 @@ class ProductViewSet(mixins.RetrieveModelMixin,
         data = {'items': serializer.data}
         return Response(data, status=status.HTTP_200_OK)
 
-    @action(detail=True, methods=['GET'], url_path='sales')
-    def sales(self, request, pk=None):
+    @action(detail=False, methods=['GET'], url_path='sales')
+    def sales(self, request):
         end = parse_date_from_request(request, 'date', raise_exceptions=True)
         start = end - timedelta(days=1)
         queryset = ProductHistory.objects.filter(date__range=[start, end],
