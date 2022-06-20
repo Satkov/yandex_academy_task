@@ -5,7 +5,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 
 from .models import Product
-from .utils import ChangeParentDate
+from .utils import change_parent_dates
 
 
 class ProductCreateUpdateDeleteSerializer(serializers.ModelSerializer):
@@ -53,7 +53,7 @@ class ProductCreateUpdateDeleteSerializer(serializers.ModelSerializer):
                 product.price = validated_data.get('price')
 
             if validated_data.get('parentId'):
-                ChangeParentDate(validated_data['parentId'], validated_data.get('date'))
+                change_parent_dates(validated_data['parentId'], validated_data.get('date'))
 
             product.save()
             return product
@@ -72,7 +72,7 @@ class ProductCreateUpdateDeleteSerializer(serializers.ModelSerializer):
             instance.price = 0
 
         if validated_data.get('parentId'):
-            ChangeParentDate(validated_data['parentId'], validated_data.get('date'))
+            change_parent_dates(validated_data['parentId'], validated_data.get('date'))
 
         instance.save()
         return instance

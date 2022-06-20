@@ -9,10 +9,10 @@ from rest_framework.viewsets import GenericViewSet
 from .models import Product, ProductHistory
 from .serializers import (ProductCreateUpdateDeleteSerializer,
                           ProductRetrieveSerializer, SalesProductSerializer)
-from .utils import (GetProductHistoryDateRangeQueryset,
-                    GetProductObjsByIdsFromProductHistory,
-                    ParseDateFromRequest, PutProductHistoryDataIntoDict,
-                    SplitCategoriesFromOffers)
+from .utils import (get_product_history_date_range_queryset,
+                    get_product_objs_by_ids_from_product_history,
+                    parse_date_from_request, put_product_history_data_into_dict,
+                    split_categories_from_offers)
 
 
 class ProductViewSet(mixins.RetrieveModelMixin,
@@ -32,14 +32,14 @@ class ProductViewSet(mixins.RetrieveModelMixin,
         чтобы категории можно было использовать в качестве
         родителя для товаров из того же запроса
         """
-        CATEGORIES, OFFERS = SplitCategoriesFromOffers(request.data)
-        if CATEGORIES:
-            serializer = self.get_serializer(data=CATEGORIES, many=True)
+        categories, offers = split_categories_from_offers(request.data)
+        if categories:
+            serializer = self.get_serializer(data=categories, many=True)
             serializer.is_valid(raise_exception=True)
             self.perform_create(serializer)
 
-        if OFFERS:
-            serializer = self.get_serializer(data=OFFERS, many=True)
+        if offers:
+            serializer = self.get_serializer(data=offers, many=True)
             serializer.is_valid(raise_exception=True)
             self.perform_create(serializer)
         return Response(status=status.HTTP_200_OK)
@@ -51,10 +51,10 @@ class ProductViewSet(mixins.RetrieveModelMixin,
 
     @action(detail=True, methods=['GET'], url_path='statistic')
     def statistic(self, request, pk=None):
-        start = ParseDateFromRequest(request, 'dateStart')
-        end = ParseDateFromRequest(request, 'dateEnd')
-        queryset = GetProductHistoryDateRangeQueryset(pk, start, end)
-        history = PutProductHistoryDataIntoDict(queryset)
+        start = parse_date_from_request(request, 'dateStart')
+        end = parse_date_from_request(request, 'dateEnd')
+        queryset = get_product_history_date_range_queryset(pk, start, end)
+        history = put_product_history_data_into_dict(queryset)
         serializer = SalesProductSerializer(data=history, many=True)
         serializer.is_valid(raise_exception=True)
         data = {'items': serializer.data}
@@ -62,12 +62,12 @@ class ProductViewSet(mixins.RetrieveModelMixin,
 
     @action(detail=True, methods=['GET'], url_path='sales')
     def sales(self, request, pk=None):
-        end = ParseDateFromRequest(request, 'date', raise_exceptions=True)
+        end = parse_date_from_request(request, 'date', raise_exceptions=True)
         start = end - timedelta(days=1)
         queryset = ProductHistory.objects.filter(date__range=[start, end],
                                                  price_changed=True,
                                                  type='OFFER')
-        products = GetProductObjsByIdsFromProductHistory(queryset)
+        products = get_product_objs_by_ids_from_product_history(queryset)
         serializer = SalesProductSerializer(data=products, many=True)
         serializer.is_valid(raise_exception=True)
         data = {'items': serializer.data}

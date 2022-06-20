@@ -7,23 +7,23 @@ from rest_framework.exceptions import ValidationError
 from .models import Product, ProductHistory
 
 
-def SplitCategoriesFromOffers(request_data):
+def split_categories_from_offers(request_data):
     """
     :param request_data: List[dict{}]
     :return: List[dict{}], List[dict{}]
     """
-    Categories = []
-    Offers = []
+    categories = []
+    offers = []
     for obj_data in request_data['items']:
         obj_data['date'] = request_data.get('updateDate')
         if obj_data.get('type') == 'CATEGORY':
-            Categories.append(obj_data)
+            categories.append(obj_data)
         else:
-            Offers.append(obj_data)
-    return Categories, Offers
+            offers.append(obj_data)
+    return categories, offers
 
 
-def ParseDateFromRequest(request, field_name, raise_exceptions=False):
+def parse_date_from_request(request, field_name, raise_exceptions=False):
     """
     :param raise_exceptions: bool
     :param request: request obj
@@ -50,7 +50,7 @@ def ParseDateFromRequest(request, field_name, raise_exceptions=False):
     return date
 
 
-def GetProductObjsByIdsFromProductHistory(queryset):
+def get_product_objs_by_ids_from_product_history(queryset):
     """
     :param queryset: queryset(ProductHistory)
     :return: List[dict{}]
@@ -74,7 +74,7 @@ def GetProductObjsByIdsFromProductHistory(queryset):
     return product_objs
 
 
-def PutProductHistoryDataIntoDict(queryset):
+def put_product_history_data_into_dict(queryset):
     """
     :param queryset: queryset
     :return: list[dict{}]
@@ -95,7 +95,7 @@ def PutProductHistoryDataIntoDict(queryset):
     return history
 
 
-def ChangeParentDate(parent, new_date):
+def change_parent_dates(parent, new_date):
     """
     parent: Product obj
     new_date: Datetime
@@ -109,7 +109,7 @@ def ChangeParentDate(parent, new_date):
         parent = parent.parentId
 
 
-def GetProductHistoryDateRangeQueryset(pk, start, end):
+def get_product_history_date_range_queryset(pk, start, end):
     """
     :param pk: UUID
     :param start: Datetime
