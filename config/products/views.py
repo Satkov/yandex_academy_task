@@ -70,5 +70,7 @@ class ProductViewSet(mixins.RetrieveModelMixin,
         products = get_product_objs_by_ids_from_product_history(queryset)
         serializer = SalesProductSerializer(data=products, many=True)
         serializer.is_valid(raise_exception=True)
+        for item in serializer.data:
+            item['date'] = item['date'][:-4] + 'Z'
         data = {'items': serializer.data}
         return Response(data, status=status.HTTP_200_OK)
