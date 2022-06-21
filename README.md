@@ -24,9 +24,12 @@ DATABASES = {
     }
 }
 ```
+Из корневой папки выполните:
+``` python
+pip install -r requirements.txt
+```
 Находясь в папке `/config` выполните:
 ```python
-pip install -r requirements.txt
 python manage.py makemigrations
 python manage.py migrate
 python manage.py runserver
