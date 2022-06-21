@@ -1,6 +1,8 @@
 # Вступительное задание в Академию Яндекса
 Проект развернут тут - `https://nick-2016.usr.yandex-academy.ru`
 Спецификация API описана в файле `openapi.yaml` в корневой папке проекта. (https://editor.swagger.io/)
+Все описанные команды выполняются на `python 3.7`
+
 ## Локальный запуск проекта через docker compose
 Создайте файл `.env` и заполните его в соответствии с перечисленными полями в файле `env_example.txt` в корневой папке проекта. 
 Из корневой папки выполните:
@@ -24,6 +26,7 @@ DATABASES = {
 ```
 Находясь в папке `/config` выполните:
 ```python
+pip install -r requirements.txt
 python manage.py makemigrations
 python manage.py migrate
 python manage.py runserver
