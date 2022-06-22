@@ -28,7 +28,7 @@ DATABASES = {
 ``` python
 pip3 install -r requirements.txt
 ```
-Из попки `/config` выполните:
+Из папки `/config` выполните:
 ```python
 python3 manage.py makemigrations
 python3 manage.py migrate
