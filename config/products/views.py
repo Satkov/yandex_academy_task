@@ -57,6 +57,8 @@ class ProductViewSet(mixins.RetrieveModelMixin,
         history = put_product_history_data_into_dict(queryset)
         serializer = SalesProductSerializer(data=history, many=True)
         serializer.is_valid(raise_exception=True)
+        for item in serializer.data:
+            item['date'] = item['date'][:-4] + 'Z'
         data = {'items': serializer.data}
         return Response(data, status=status.HTTP_200_OK)
 
