@@ -1,15 +1,14 @@
 # Вступительное задание в Академию Яндекса
 * Проект развернут тут - `https://nick-2016.usr.yandex-academy.ru`
 * Спецификация API описана в файле `openapi.yaml` в корневой папке проекта. (https://editor.swagger.io/)
-* Все описанные команды выполняются на `python 3.7`
 
 ## Локальный запуск проекта через docker compose
 Создайте файл `.env` и заполните его в соответствии с перечисленными полями в файле `env_example.txt` в корневой папке проекта. 
 Из корневой папки выполните:
 ``` python
-docker compose up --build
-docker compose exec -it backend python manage.py makemigrations
-docker compose exec -it backend python manage.py migrate
+docker-compose up --build
+docker-compose run backend python manage.py makemigrations
+docker-compose run backend python manage.py migrate
 ```
 Проект будет запущен на `http://127.0.0.1/`
 
@@ -26,13 +25,13 @@ DATABASES = {
 ```
 Из корневой папки выполните:
 ``` python
-pip install -r requirements.txt
+pip3 install -r requirements.txt
 ```
-Находясь в папке `/config` выполните:
+Из попки `/config` выполните:
 ```python
-python manage.py makemigrations
-python manage.py migrate
-python manage.py runserver
+python3 manage.py makemigrations
+python3 manage.py migrate
+python3 manage.py runserver
 ```
 Проект будет запущен на `http://127.0.0.1:8000/`
 
@@ -40,17 +39,17 @@ python manage.py runserver
 ### Запуск тестов:
 ```python
 # Запуск через docker compose
-docker compose exec -it backend python manage.py test
+docker-compose run backend python manage.py test
 # Для запуска с sqlite3
-python manage.py test
+python3 manage.py test
 ```
 
 ### Создание суперпользователя:
 ```python
 # Запуск через docker compose
-docker compose exec -it backend python manage.py createsuperuser
+docker-compose run backend python manage.py createsuperuser
 # Для запуска с sqlite3
-python manage.py createsuperuser
+python3 manage.py createsuperuser
 ```
 Админка доступна по адресу - `/admin`
 
