@@ -1,15 +1,15 @@
 # Вступительное задание в Академию Яндекса
 * Проект развернут тут - `https://nick-2016.usr.yandex-academy.ru`
 * Спецификация API описана в файле `openapi.yaml` в корневой папке проекта. (https://editor.swagger.io/)
-* Все описанные команды выполняются на `python 3.7`
-
+* В проекте реализованы все ендпоинты из спецификации.
+* На сервере настроен перезапуск приложения в случае рестарта контейнера. 
 ## Локальный запуск проекта через docker compose
 Создайте файл `.env` и заполните его в соответствии с перечисленными полями в файле `env_example.txt` в корневой папке проекта. 
 Из корневой папки выполните:
 ``` python
-docker compose up --build
-docker compose exec -it backend python manage.py makemigrations
-docker compose exec -it backend python manage.py migrate
+docker-compose up --build
+docker-compose run backend python manage.py makemigrations
+docker-compose run backend python manage.py migrate
 ```
 Проект будет запущен на `http://127.0.0.1/`
 
@@ -26,13 +26,13 @@ DATABASES = {
 ```
 Из корневой папки выполните:
 ``` python
-pip install -r requirements.txt
+pip3 install -r requirements.txt
 ```
-Находясь в папке `/config` выполните:
+Из попки `/config` выполните:
 ```python
-python manage.py makemigrations
-python manage.py migrate
-python manage.py runserver
+python3 manage.py makemigrations
+python3 manage.py migrate
+python3 manage.py runserver
 ```
 Проект будет запущен на `http://127.0.0.1:8000/`
 
@@ -40,24 +40,14 @@ python manage.py runserver
 ### Запуск тестов:
 ```python
 # Запуск через docker compose
-docker compose exec -it backend python manage.py test
+docker-compose run backend python manage.py test
 # Для запуска с sqlite3
-python manage.py test
+python3 manage.py test
 ```
-
-### Создание суперпользователя:
-```python
-# Запуск через docker compose
-docker compose exec -it backend python manage.py createsuperuser
-# Для запуска с sqlite3
-python manage.py createsuperuser
-```
-Админка доступна по адресу - `/admin`
 
 ## Устройство и работа кода
-Сервис написан на базе Django Rest Framework.
-Здесь описаны моменты, которые могут показаться неочевидными.
-
+Сервис написан на Django Rest Framework.
+БД - PostgreSQL 13.
 ### Модели 
 Находятся в /products/models.py
 * Модель `Product` содержит данные о товарах и категориях, которые добавляют пользователи.
@@ -67,20 +57,21 @@ python manage.py createsuperuser
 
 ### Сериализаторы
 Находятся в `/products/serializers.py`
+* Отвечают за сериализацию и десериализацию данных.
+* Поля `ModelSerializer` валидируют корректность входных данных.
+* Метод `validate` валидирует отдельные случаи.
+###### `ProductCreateUpdateDeleteSerializer` отвечает за сериализацию данных запросов, поступающих на `/imports` и `/delete/{id}`
+* Во время создания и обновления объекта вызывается метод `create`. Если объект уже создан, то данные существующего объекта и входящие данные передаются в метод `update`,  который обновляет все поля продукта.
+###### `ProductRetrieveSerializer` обрабатывает `retrieve` запросы к `/nodes/{id}`
+* Метод `get_children` рекурсивно возвращает дочерние элементы категорий.
+* Поскольку категории не хранят среднее значение стоимости их дочерних товаров, вычисление средней стоимости происходит в методе `get_price`, в случае когда нужно десериализовать данные категории. Дочерние категории можно получить использовав `related_name` модели `Product` - `child.children.all()`.
+###### `SalesProductSerializer` работает с запросами, поступаюющими на `/sales` и `/node/{id}/statistic`.
 
-* При сериализации данных для создания объкта `Product` в `ProductCreateUpdateDeleteSerializer` вызывается метод `create`, в случае, если объект уже есть в базе, данные существующего объекта и обновленные данные передаются в метод `update`, который обновляет все поля продукта.
-
-* Метод `get_children` `ProductRetrieveSerializer'a` рекурсивно возвращает дочернии элементы категорий.
-
-### Админка
-* Сервис работает без `Nginx`, вследствии чего на страницу админки не раздаётся статика.
-Статика админки будет работать, если запустить сервер локально без `docker`.
-
-
-
-
-
-
-
-
-
+### Представления
+Находятся в `/products/views.py`
+###### `ProductViewSet` работает со всеми запросами, поступающими к API. 
+* В зависимости от метода запроса, метод `get_serializer_class` выбирает необходимый сериализатор, в который отправятся данные. Методы `statistic` и `sales` явно используют `SalesProductSerializer`.
+* `сreate` срабатывает при обращении к `/imports/`. Сначала создаются категории, потом создаются товарФы, чтобы категории можно было использовать в качестве родителя для товаров из того же запроса.
+* `destroy` переопределен, чтобы возвращать 200-й статус код.
+* `statistic` парсит дату из `request`, получает данные об истории изменения объекта за представленный период, после сериализации форматирует дату.
+* `sales` парсит дату с флажком `raise_exceptions`, если дата не представлена, - возвращает ошибку. Далее получает список всех объектов `ProductHistory`, которые были изменены за нужный период, используя данные `id` из этих объектов, находит актуальные продукты в моделе `Product`. После сериализации форматирует дату.
